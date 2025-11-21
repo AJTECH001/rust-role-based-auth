@@ -1,7 +1,7 @@
 use std::collections::HashMap;
 
 /// Public roles a user can have in the system.
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, serde::Serialize)]
 pub enum Role {
     Admin,
     Moderator,
@@ -57,6 +57,9 @@ pub enum AuthError {
         required: Role,
         actual: Role,
     },
+
+    #[error("database error: {0}")]
+    DatabaseError(#[from] rusqlite::Error),
 }
 
 /// In‑memory store of all users.
@@ -135,7 +138,7 @@ impl UserStore {
     }
 }
 
-fn has_required_role(actual: Role, required: Role) -> bool {
+pub fn has_required_role(actual: Role, required: Role) -> bool {
     use Role::*;
 
     let rank = |r: Role| match r {
